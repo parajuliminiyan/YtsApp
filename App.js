@@ -40,7 +40,7 @@ export default class App extends Component
               film.key = movie.id;
               film.title = movie.title;
               film.summary = movie.summary;
-              film.cover_img = movie.medium_cover_image;
+              film.cover_img = movie.medium_cover_image; 
               film.torrents = movie.torrents;
               film.year = movie.year;
               film.rating = movie.rating;
@@ -74,13 +74,10 @@ export default class App extends Component
        <Item> 
             <Icon name="ios-search" />
             <Input placeholder="Search" 
-              onChangeText={(text) => this.setState({searchText:text})} />
+              onChangeText={(text) => { this.setState({searchText:text}); this.getMovies()}}/>
           </Item>
        </Header>
        <Content>
-       <Button style={{margin:15}} full onPress={this.getMovies}>
-            <Text style={{color:'#fff', fontSize:18}}>Search</Text>
-        </Button>
           {this.state.isError === true ? Error: khalii }
           <ScrollView style={styles.container}>
             { this.renderMovies() }
@@ -106,16 +103,19 @@ export default class App extends Component
             <Text style={{ color : '#333' }}> { movie.summary } </Text>
           </CardItem>
           <CardItem>
+          <ScrollView horizontal={true}>
             {
               movie.genre.map((genre) => {
                 return (
-                  <Badge key={genre} style={{ backgroundColor : '#1abc9c', marginRight: 10, padding : 10 }}>  
-                    <Text style={{ color : '#fff', fontSize : 15 }}> 
+                  <Badge key={genre} style={{ backgroundColor : '#1abc9c', marginRight: 10, padding : 15,  }}>  
+                    <Text style={{ color : '#fff', fontSize : 15, }}> 
                       { genre } 
                     </Text> 
-                  </Badge>);
+                  </Badge>
+                 );
               })
             }
+            </ScrollView>
           </CardItem>
           {
             movie.torrents.map( (torrent) => {
