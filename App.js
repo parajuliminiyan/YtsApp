@@ -1,6 +1,6 @@
 import React,{Component} from 'react';
-import {View, Text,ScrollView,FlatList, StyleSheet,FlatListItem} from 'react-native';
-import {Container, Header, Item, Button, Icon,Input, Content, List, ListItem, Left, Thumbnail, Body, Card, CardItem} from 'native-base';
+import {View, Text,ScrollView, StyleSheet , Image} from 'react-native';
+import {Container, Header, Item, Button, Icon,Input, Content, Card, CardItem, Badge} from 'native-base';
 export default class App extends Component
 {
   constructor(props){
@@ -9,9 +9,10 @@ export default class App extends Component
       searchText: '',
       isError:false,
       error: '',
-      dataSource: [],
+      movies: [],
       isLoading:true,
-      title:''
+      limit : 10,
+      currentPage : 1
     };
     this.data = [];
   }
@@ -19,7 +20,7 @@ export default class App extends Component
   getMovies = () => {
     let query = this.state.searchText;
     let moviename = query.toLowerCase().trim();
-    const Url= `https://yts.am/api/v2/list_movies.json?query_term=${moviename}&limit=10&sort_by=year`;
+    const Url= `https://yts.am/api/v2/list_movies.json?query_term=${moviename}&limit=${this.state.limit}&sort_by=year`;
     fetch(Url)
       .then((response) => response.json())
       .then((responseJson) => {
@@ -28,23 +29,32 @@ export default class App extends Component
             this.setState({
               isError:true,
               error: "No Results Found",
-              dataSource: ''
+              movies: []
             });
           }
           else{           
             this.setState({isError:false})
-            
-            // let title = ''
-            // for(i=0; i<=responseJson.data.movies.length; i++)
-            // {
-            //   title += responseJson.data.movies[i].title;
-              
-            // }
-
+            movies = [];
+            responseJson.data.movies.map( (movie) => {
+              let film = {};
+              film.key = movie.id;
+              film.title = movie.title;
+              film.summary = movie.summary;
+              film.cover_img = movie.medium_cover_image;
+              film.torrents = movie.torrents;
+              film.year = movie.year;
+              film.rating = movie.rating;
+              film.mpa_rating = movie.mpa_rating;
+              film.genre = []; 
+              movie.genres.map((genre) => {
+                film.genre.push(genre);
+              });
+              movies.push(film);
+            });
             this.setState({
-              dataSource:responseJson.data.movies,
-              title: title
-            })
+              
+              movies : movies
+            });
           }
       })
       .catch((error) => {
@@ -72,12 +82,57 @@ export default class App extends Component
             <Text style={{color:'#fff', fontSize:18}}>Search</Text>
         </Button>
           {this.state.isError === true ? Error: khalii }
-         <ScrollView style={styles.container}>
-            <Text>{this.state.dataSource}</Text>
-         </ScrollView>
+          <ScrollView style={styles.container}>
+            { this.renderMovies() }
+          </ScrollView>
        </Content>
      </Container>
     );
+  }
+
+  renderMovies(){
+    return this.state.movies.map((movie) => {
+      return(
+        <Card key={movie.key}>
+          <CardItem header>
+            <Text style={{ fontSize:20, fontWeight: '600', color: '#333' }}>
+              { movie.title }
+            </Text>
+          </CardItem>
+          <CardItem cardBody>
+            <Image source={{ uri : movie.cover_img }} style={{ height : 200, width:null, flex : 1 }}/>
+          </CardItem>
+          <CardItem cardBody style={{ padding: 15, paddingTop : 20 }}>
+            <Text style={{ color : '#333' }}> { movie.summary } </Text>
+          </CardItem>
+          <CardItem>
+            {
+              movie.genre.map((genre) => {
+                return (
+                  <Badge key={genre} style={{ backgroundColor : '#1abc9c', marginRight: 10, padding : 10 }}>  
+                    <Text style={{ color : '#fff', fontSize : 15 }}> 
+                      { genre } 
+                    </Text> 
+                  </Badge>);
+              })
+            }
+          </CardItem>
+          {
+            movie.torrents.map( (torrent) => {
+              return(
+                  <Button key={torrent.hash} style={{margin:15}} full onPress={this.downloadTorrent(torrent)}>
+                      <Text style={{color:'#fff', fontSize:18}}>{ 'Download '+torrent.quality + ', ' + torrent.size }</Text>
+                  </Button>
+              );
+            })
+          }
+        </Card>
+      )
+    })
+  }
+
+  downloadTorrent(torrent){
+    //alert(torrent.url);
   }
 }
 
