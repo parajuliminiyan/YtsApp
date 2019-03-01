@@ -1,5 +1,6 @@
 import React,{Component} from 'react';
-import {View, Text,ScrollView, StyleSheet , Image} from 'react-native';
+import {View, Text,ScrollView, StyleSheet , Image, PermissionsAndroid} from 'react-native';
+import RNFetchBlob from 'rn-fetch-blob';
 import {Container, Header, Item, Button, Icon,Input, Content, Card, CardItem, Badge} from 'native-base';
 export default class App extends Component
 {
@@ -120,7 +121,7 @@ export default class App extends Component
           {
             movie.torrents.map( (torrent) => {
               return(
-                  <Button key={torrent.hash} style={{margin:15}} full onPress={this.downloadTorrent(torrent)}>
+                  <Button key={torrent.hash} style={{margin:15}} full onPress={() => this.downloadTorrent(torrent)}>
                       <Text style={{color:'#fff', fontSize:18}}>{ 'Download '+torrent.quality + ', ' + torrent.size }</Text>
                   </Button>
               );
@@ -132,7 +133,42 @@ export default class App extends Component
   }
 
   downloadTorrent(torrent){
-    //alert(torrent.url);
+    getPermission = async () => {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+          {
+            title : 'YtsApp want write Storage Permission',
+            buttonNegative: 'Cancel',
+            buttonPositive: 'OK',
+          },
+        );
+        if(granted === PermissionsAndroid.RESULTS.GRANTED){
+          console.log('Permission Granted');
+        } else {
+          console.log('Permission Denied');
+        }
+      } catch(err) {
+        console.warn(err);
+      }
+    }
+   torrentUrl = torrent.url;
+    const {config, fs} = RNFetchBlob;
+    let downloadDir = fs.dirs.DownloadDir;
+    let options = {
+      fileCache: true,
+      addAndroidDownloads : {
+        useDownloadManager : true,
+        notification: true,
+        path:  downloadDir + "/torents", // this is the path where your downloaded file will live in
+        description : 'Downloading File.',
+        mediaScannable: true
+      }
+    }
+    config(options).fetch("GET", torrentUrl).then((resp) => {
+      alert('Downloaded torrent File is at downloads Folder');
+    })
+    
   }
 }
 
