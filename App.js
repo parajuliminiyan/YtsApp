@@ -133,25 +133,6 @@ export default class App extends Component
   }
 
   downloadTorrent(torrent){
-    getPermission = async () => {
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-          {
-            title : 'YtsApp want write Storage Permission',
-            buttonNegative: 'Cancel',
-            buttonPositive: 'OK',
-          },
-        );
-        if(granted === PermissionsAndroid.RESULTS.GRANTED){
-          console.log('Permission Granted');
-        } else {
-          console.log('Permission Denied');
-        }
-      } catch(err) {
-        console.warn(err);
-      }
-    }
    torrentUrl = torrent.url;
     const {config, fs} = RNFetchBlob;
     let downloadDir = fs.dirs.DownloadDir;
